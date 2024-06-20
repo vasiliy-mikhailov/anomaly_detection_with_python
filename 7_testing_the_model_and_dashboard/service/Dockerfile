@@ -1,0 +1,14 @@
+FROM python:3.12-alpine
+RUN mkdir src
+WORKDIR /src
+RUN apk add g++
+RUN apk add libffi-dev
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY main.py .
+COPY test.py .
+COPY test.csv .
+COPY model.joblib .
+#CMD uvicorn main:app --host 0.0.0.0 --port 8000
+CMD fastapi dev main.py --host 0.0.0.0 --port 8000
+# CMD sh
