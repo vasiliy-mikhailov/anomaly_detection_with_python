@@ -1,0 +1,50 @@
+volumes:
+    prometheus_data: {}
+    grafana_data: {}
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.20.0
+    container_name: prometheus
+    volumes:
+      - ./prometheus:/etc/prometheus # host path: container path where the volume is Mounted.
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=200h'
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+
+
+  grafana:
+    image: grafana/grafana:7.1.1
+    container_name: grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+
+  caddy:
+    image: stefanprodan/caddy
+    container_name: caddy
+    volumes:
+      - ./caddy:/etc/caddy
+    environment:
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+    restart: unless-stopped
+
+  service:
+    image: mikhailov.tech/6_integrating_the_metrics_collection_functionality_in_the_web_service
+    container_name: service
+    restart: unless-stopped
+    ports:
+      -  "8000:8000"
